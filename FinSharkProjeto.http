@@ -1,0 +1,6 @@
+@FinSharkProjeto_HostAddress = http://localhost:5157
+
+GET {{FinSharkProjeto_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
