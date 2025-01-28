@@ -10,6 +10,7 @@ using FinSharkProjeto.Dtos.Stock;
 using FinSharkProjeto.Interfaces;
 using FinSharkProjeto.Mappers;
 using FinSharkProjeto.Model;
+using FinSharkBackEnd.Helpers;
 
 namespace FinSharkProjeto.Controller
 {
@@ -28,9 +29,13 @@ namespace FinSharkProjeto.Controller
 
         // GET: api/Stock
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Stock>>> GetStocks()
+        public async Task<ActionResult<IEnumerable<Stock>>> GetStocks([FromQuery] QueryObject query)
         {
-            var stocks = await _stockRepo.GetAllAsync();
+              if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
+            var stocks = await _stockRepo.GetAllAsync(query);
 
             var stocksMapped = stocks.Select(s => s.ToStockDTO());
             
@@ -40,14 +45,17 @@ namespace FinSharkProjeto.Controller
         // GET: api/Stock/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Stock>> GetStock([FromRoute] int id)
-        {
+        {   
+              if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             var stock = await _stockRepo.GetByIdAsync(id);
 
             if (stock == null)
             {
                 return NotFound();
             }
-
             return Ok(stock.ToStockDTO());
         }
 
@@ -56,6 +64,10 @@ namespace FinSharkProjeto.Controller
         [HttpPut("{id}")]
         public async Task<IActionResult> PutStock(int id, UpdateStockRequestDTO updateDto)
         {
+              if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             var stockModel = await _stockRepo.UpdateAsync(id, updateDto);
             
             if (id != stockModel.Id)
@@ -85,6 +97,10 @@ namespace FinSharkProjeto.Controller
         [HttpPost]
         public async Task<ActionResult<Stock>> PostStock(CreateStockRequestDTO stock)
         {
+              if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             var stockModel = stock.ToStockFromCreateDTO();
             
             await _stockRepo.CreateAsync(stockModel);

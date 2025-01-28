@@ -1,4 +1,5 @@
-﻿using FinSharkProjeto.Data;
+using FinSharkBackEnd.Helpers;
+using FinSharkProjeto.Data;
 using FinSharkProjeto.Dtos.Stock;
 using FinSharkProjeto.Interfaces;
 using FinSharkProjeto.Mappers;
@@ -17,9 +18,29 @@ public class StockRepository : IStockRepository
         _context = context;
     }
     
-    public async Task<List<Stock>> GetAllAsync()
+    public async Task<List<Stock>> GetAllAsync(QueryObject query)
     {
-        return  await _context.Stocks.Include(c => c.Comments).ToListAsync();
+        var stocks =  _context.Stocks.Include(c => c.Comments).AsQueryable();
+
+        if(!string.IsNullOrEmpty(query.CompanyName)){
+            stocks = stocks.Where(c => c.CompanyName.Contains(query.CompanyName));
+        }
+
+        if(!string.IsNullOrEmpty(query.Symbol)){
+            stocks = stocks.Where(c => c.Symbol.Contains(query.Symbol));
+        }
+
+        if (!string.IsNullOrEmpty(query.SortBy))
+        {
+            if (query.SortBy.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
+            {
+                stocks = query.IsDescending ? stocks.OrderByDescending(c => c.Symbol) : stocks.OrderBy(c => c.Symbol);
+            }
+        }
+        var skipNumber = (query.PageNumber - 1) * query.PageSize;
+        var takeNumber = query.PageSize;
+
+        return await stocks.Skip(skipNumber).Take(takeNumber).ToListAsync();
     }
 
     public async Task<Stock?> GetByIdAsync(int id)

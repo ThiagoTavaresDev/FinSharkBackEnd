@@ -32,6 +32,10 @@ namespace FinSharkProjeto.Controller
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
         {
+            if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             var comments = await _commentRepo.GetAllCommentsAsync();
             
             var commentsDto = comments.Select(x => x.ToCommentDTO());
@@ -43,6 +47,10 @@ namespace FinSharkProjeto.Controller
         [HttpGet("{id}")]
         public async Task<ActionResult<Comment>> GetComment(int id)
         {
+            if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+            
             var comment = await _commentRepo.GetCommentByIdAsync(id);
 
             if (comment == null)
@@ -58,6 +66,10 @@ namespace FinSharkProjeto.Controller
         [HttpPut("{id}")]
         public async Task<IActionResult> PutComment(int id, UpdateCommentRequestDTO updateDTO)
         {
+            if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             var comment = await _commentRepo.UpdateAsync(id,updateDTO.ToCommentFromUpdate());
             
             if (id != comment.Id)
@@ -77,6 +89,10 @@ namespace FinSharkProjeto.Controller
         [HttpPost]
         public async Task<ActionResult<Comment>> PostComment(int stockId, CreateCommentDTO commentDto)
         {
+             if(!ModelState.IsValid){
+                return BadRequest(ModelState);
+            }
+
             if (!await _stockRepo.StockExists(stockId))
             {
                 return BadRequest("Stock não existe");

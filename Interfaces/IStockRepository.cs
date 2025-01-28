@@ -1,11 +1,12 @@
-﻿using FinSharkProjeto.Dtos.Stock;
+﻿using FinSharkBackEnd.Helpers;
+using FinSharkProjeto.Dtos.Stock;
 using FinSharkProjeto.Model;
 
 namespace FinSharkProjeto.Interfaces;
 
 public interface IStockRepository
 {
-     Task<List<Stock>> GetAllAsync();
+     Task<List<Stock>> GetAllAsync(QueryObject query);
     Task<Stock?>  GetByIdAsync(int id);
     Task<Stock> CreateAsync(Stock stockModel);
     Task<Stock?> UpdateAsync(int id, UpdateStockRequestDTO stockModelDto);
