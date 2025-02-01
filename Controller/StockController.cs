@@ -11,6 +11,7 @@ using FinSharkProjeto.Interfaces;
 using FinSharkProjeto.Mappers;
 using FinSharkProjeto.Model;
 using FinSharkBackEnd.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinSharkProjeto.Controller
 {
@@ -29,6 +30,7 @@ namespace FinSharkProjeto.Controller
 
         // GET: api/Stock
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Stock>>> GetStocks([FromQuery] QueryObject query)
         {
               if(!ModelState.IsValid){
