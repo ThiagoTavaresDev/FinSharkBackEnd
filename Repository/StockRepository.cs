@@ -21,7 +21,7 @@ public class StockRepository : IStockRepository
     public async Task<List<Stock>> GetAllAsync(QueryObject query)
     {
         var stocks =  _context.Stocks.Include(c => c.Comments).AsQueryable();
-
+        
         if(!string.IsNullOrEmpty(query.CompanyName)){
             stocks = stocks.Where(c => c.CompanyName.Contains(query.CompanyName));
         }
@@ -99,5 +99,9 @@ public class StockRepository : IStockRepository
     public Task<bool> StockExists(int id)
     {
         return _context.Stocks.AnyAsync(i => i.Id == id);
+    
     }
+
+    
+
 }
