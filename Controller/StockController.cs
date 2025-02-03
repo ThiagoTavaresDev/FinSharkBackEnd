@@ -39,7 +39,7 @@ namespace FinSharkProjeto.Controller
 
             var stocks = await _stockRepo.GetAllAsync(query);
 
-            var stocksMapped = stocks.Select(s => s.ToStockDTO());
+            var stocksMapped = stocks.Select(s => s.ToStockDTO()).ToList();
             
             return Ok(stocksMapped);
         }

@@ -1,4 +1,5 @@
-﻿using FinSharkProjeto.Data;
+﻿using FinSharkBackEnd.Helpers;
+using FinSharkProjeto.Data;
 using FinSharkProjeto.Interfaces;
 using FinSharkProjeto.Model;
 using Microsoft.EntityFrameworkCore;
@@ -14,14 +15,24 @@ public class CommentRepository : ICommentRepository
         _context = context;
     }
     
-    public async Task<List<Comment>> GetAllCommentsAsync()
+    public async Task<List<Comment>> GetAllCommentsAsync(CommentQueryObject queryObject)
     {
-        return await _context.Comments.ToListAsync();
+        var comments = _context.Comments.Include(x => x.AppUser).AsQueryable();
+
+        if(!string.IsNullOrEmpty(queryObject.Symbol)){
+            comments = comments.Where(x => x.Stock.Symbol == queryObject.Symbol);
+        };
+
+        if(queryObject.IsDescending == true){
+            comments = comments.OrderByDescending(x => x.CreatedOn);
+        }
+
+        return await comments.ToListAsync();
     }
 
     public async Task<Comment?> GetCommentByIdAsync(int id)
     {
-       var comment =  await _context.Comments.FindAsync(id);
+       var comment =  await _context.Comments.Include(x => x.AppUser).FirstOrDefaultAsync(c => c.Id == id);
 
        if (comment == null)
        {

@@ -20,7 +20,7 @@ public class StockRepository : IStockRepository
     
     public async Task<List<Stock>> GetAllAsync(QueryObject query)
     {
-        var stocks =  _context.Stocks.Include(c => c.Comments).AsQueryable();
+        var stocks =  _context.Stocks.Include(c => c.Comments).ThenInclude(a => a.AppUser).AsQueryable();
         
         if(!string.IsNullOrEmpty(query.CompanyName)){
             stocks = stocks.Where(c => c.CompanyName.Contains(query.CompanyName));
@@ -102,6 +102,9 @@ public class StockRepository : IStockRepository
     
     }
 
-    
+    public async Task<Stock?> GetBySymbolAsync(string symbol)
+    {
+        return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol);
+    }
 
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using FinSharkBackEnd.Model;
 
 namespace FinSharkProjeto.Model;
 [Table("Stocks")]
@@ -15,4 +16,5 @@ public class Stock
     public long MarketCap { get; set; }
     
     public List<Comment> Comments { get; set; } = new List<Comment>();
+    public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
 }

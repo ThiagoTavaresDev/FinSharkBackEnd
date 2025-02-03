@@ -10,6 +10,12 @@ using FinSharkProjeto.Dtos.Comment;
 using FinSharkProjeto.Interfaces;
 using FinSharkProjeto.Mappers;
 using FinSharkProjeto.Model;
+using Microsoft.AspNetCore.Identity;
+using FinSharkBackEnd.Model;
+using FinSharkBackEnd.Extension;
+using FinSharkBackEnd.Interfaces;
+using FinSharkBackEnd.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinSharkProjeto.Controller
 {
@@ -20,23 +26,29 @@ namespace FinSharkProjeto.Controller
         private readonly AppDbContext _context;
         private readonly ICommentRepository _commentRepo;
         private readonly IStockRepository _stockRepo;
+        private readonly UserManager<AppUser> _userManager;
         
-        public CommentController(AppDbContext context, ICommentRepository commentRepository, IStockRepository stockRepo)
+        private readonly IFMPService _fmpService;
+
+        public CommentController(AppDbContext context, ICommentRepository commentRepository, IStockRepository stockRepo, UserManager<AppUser> userManager, IFMPService fmpService)
         {
             _context = context;
             _commentRepo = commentRepository;
             _stockRepo = stockRepo;
+            _userManager = userManager;
+            _fmpService = fmpService;
         }
 
         // GET: api/Comment
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments([FromQuery] CommentQueryObject queryObject)
         {
             if(!ModelState.IsValid){
                 return BadRequest(ModelState);
             }
 
-            var comments = await _commentRepo.GetAllCommentsAsync();
+            var comments = await _commentRepo.GetAllCommentsAsync(queryObject);
             
             var commentsDto = comments.Select(x => x.ToCommentDTO());
             
@@ -87,18 +99,29 @@ namespace FinSharkProjeto.Controller
         // POST: api/Comment
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Comment>> PostComment(int stockId, CreateCommentDTO commentDto)
+        [Route("{symbol:alpha}")]
+        public async Task<ActionResult<Comment>> PostComment([FromRoute] string symbol, CreateCommentDTO commentDto)
         {
              if(!ModelState.IsValid){
                 return BadRequest(ModelState);
             }
 
-            if (!await _stockRepo.StockExists(stockId))
-            {
-                return BadRequest("Stock não existe");
-            }
+            var stock = await _stockRepo.GetBySymbolAsync(symbol);
 
-            var commentModel = commentDto.ToCommentFromCreate(stockId);
+            if (stock == null){
+                stock = await  _fmpService.FindStockBySymbolAsync(symbol);
+                if(stock == null){
+                    return BadRequest();
+                }
+                else{
+                    await _stockRepo.CreateAsync(stock);
+                }
+            }
+            var username = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync( username);
+
+            var commentModel = commentDto.ToCommentFromCreate(stock.Id);
+            commentModel.AppUserId = appUser.Id;
             await _commentRepo.CreateAsync(commentModel);
 
             return CreatedAtAction("GetComment", new { id = commentModel.Id }, commentModel.ToCommentDTO());
